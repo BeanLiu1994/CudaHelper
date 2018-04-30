@@ -17,9 +17,11 @@ CuPtr:
   
 * CuGetResult
 
+* GetDevicePtr
+
 * CuSyncDevice  (static)
 
-these three function should be enough for simple cuda program.
+these four functions should be enough for simple cuda program.
 
 CuPtr_Const use a const ptr for initialization, and can not copy data from device to host.
 
