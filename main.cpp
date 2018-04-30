@@ -47,11 +47,12 @@ int main()
 	if (!cudaInitializer::CudaOK())
 		return 100;
 
-	// var for test
+	// 测试用变量
 	int c1[arraySize] = { 0 };
 	int c2[arraySize] = { 0 };
 	vector<int> c3(arraySize, 0);
-
+	
+	//创建三个测试
 	MakeTest_i(1);
 	MakeTest_i(2);
 	MakeTest_i(3);

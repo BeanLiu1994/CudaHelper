@@ -8,14 +8,13 @@ __global__ void addKernel(int *c, const int *a, const int *b)
     c[i] = a[i] + b[i];
 }
 
-// Helper function for using CUDA to add vectors in parallel.
+// 测试1 常见用法
 void test1(int *c, const int *a, const int *b, unsigned int size)
 {
 	CuPtr_Const da(a, size);
 	CuPtr_Const db(b, size);
 	CuPtr dc(c, size);
 
-    // Launch a kernel on the GPU with one thread for each element.
     addKernel<<<1, size>>>(
 		(int*)dc.GetDevicePtr(),
 		(int*)da.GetDevicePtr(), 
@@ -25,13 +24,13 @@ void test1(int *c, const int *a, const int *b, unsigned int size)
 	dc.CuGetResult();
 }
 
+// 测试2 直接分配gpu空间,之后复制到c里
 void test2(int *c, const int *a, const int *b, unsigned int size)
 {
 	CuPtr_Const da(a, size);
 	CuPtr_Const db(b, size);
 	CuPtr dc(nullptr, size*sizeof(int));
 
-	// Launch a kernel on the GPU with one thread for each element.
 	addKernel << <1, size >> >(
 		(int*)dc.GetDevicePtr(),
 		(int*)da.GetDevicePtr(),
@@ -41,14 +40,14 @@ void test2(int *c, const int *a, const int *b, unsigned int size)
 	dc.CuGetResult(c);
 }
 
+// 测试3 使用其他库分出的空间
 void test3(std::vector<int>& c, const int *a, const int *b, unsigned int size)
 {
-	// do not change sizeof [c], while running this part
+	// 运行过程中不要使c重分空间
 	CuPtr_Const da(a, size);
 	CuPtr_Const db(b, size);
 	CuPtr dc(&(c[0]), size);
 
-	// Launch a kernel on the GPU with one thread for each element.
 	addKernel << <1, size >> >(
 		(int*)dc.GetDevicePtr(),
 		(int*)da.GetDevicePtr(),

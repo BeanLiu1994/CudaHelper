@@ -1,4 +1,6 @@
 #include "CudaManager.h"
+// Made by BeanLiu
+// njueebeanliu@hotmail.com
 
 #ifdef UseCuda
 

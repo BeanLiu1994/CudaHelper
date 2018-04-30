@@ -1,5 +1,6 @@
 #pragma once
 // Made by BeanLiu
+// njueebeanliu@hotmail.com
 #define UseCuda
 
 // CuPtr(nullptr, size)
