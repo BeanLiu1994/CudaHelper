@@ -3,16 +3,22 @@ make cuda easier to use.
 # cudaInitializer usage
 
 initial:   cudaInitializer::Init();
+
 check:     cudaInitializer::CudaOK();
+
 
 calls cudacudaDeviceReset() at program exit.
 
 # CuPtr usage
 
 CuPtr:
-  Constructor
-  CuGetResult
-  CuSyncDevice  (static)
+
+* Constructor
+  
+* CuGetResult
+
+* CuSyncDevice  (static)
+
 these three function should be enough for simple cuda program.
 
 CuPtr_Const use a const ptr for initialization, and can not copy data from device to host.
