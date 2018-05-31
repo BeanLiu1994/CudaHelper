@@ -31,10 +31,10 @@ test 1
 ```
 f(T *a, ...)
 {
-  CuPtr da(a, size);//  malloc: size*sizeof(T) , and copy to device.
+  CuPtr<T> da(a, size);//  malloc: size*sizeof(T) , and copy to device.
   ...
   kernel<<<?,?>>>(
-                (T*)da.GetDevicePtr(),
+                da.GetDevicePtr(),
                 ...
                 );
   da.CuGetResult();//  sync and copy to host.
@@ -45,10 +45,10 @@ test 2
 ```
 f(T *a, ...)
 {
-  CuPtr da(nullptr, size*sizeof(T));//  malloc: size*sizeof(T) , copy nothing.
+  CuPtr<T> da(nullptr, size*sizeof(T));//  malloc: size*sizeof(T) , copy nothing.
   ...
   kernel<<<?,?>>>(
-                (T*)da.GetDevicePtr(),
+                da.GetDevicePtr(),
                 ...
                 );
   da.CuGetResult(a);//  sync and copy to host.
