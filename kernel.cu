@@ -11,14 +11,14 @@ __global__ void addKernel(int *c, const int *a, const int *b)
 // 测试1 常见用法
 void test1(int *c, const int *a, const int *b, unsigned int size)
 {
-	CuPtr_Const da(a, size);
-	CuPtr_Const db(b, size);
-	CuPtr dc(c, size);
+	CuPtr<const int> da(a, size);
+	CuPtr<const int> db(b, size);
+	CuPtr<int> dc(c, size);
 
-    addKernel<<<1, size>>>(
-		(int*)dc.GetDevicePtr(),
-		(int*)da.GetDevicePtr(), 
-		(int*)db.GetDevicePtr()
+    	addKernel<<<1, size>>>(
+		dc.GetDevicePtr(),
+		da.GetDevicePtr(), 
+		db.GetDevicePtr()
 		);
     
 	dc.CuGetResult();
@@ -27,14 +27,14 @@ void test1(int *c, const int *a, const int *b, unsigned int size)
 // 测试2 直接分配gpu空间,之后复制到c里
 void test2(int *c, const int *a, const int *b, unsigned int size)
 {
-	CuPtr_Const da(a, size);
-	CuPtr_Const db(b, size);
-	CuPtr dc(nullptr, size*sizeof(int));
+	CuPtr<const int> da(a, size);
+	CuPtr<const int> db(b, size);
+	CuPtr<int> dc(nullptr, size*sizeof(int));
 
 	addKernel << <1, size >> >(
-		(int*)dc.GetDevicePtr(),
-		(int*)da.GetDevicePtr(),
-		(int*)db.GetDevicePtr()
+		dc.GetDevicePtr(),
+		da.GetDevicePtr(), 
+		db.GetDevicePtr()
 		);
 
 	dc.CuGetResult(c);
@@ -44,14 +44,14 @@ void test2(int *c, const int *a, const int *b, unsigned int size)
 void test3(std::vector<int>& c, const int *a, const int *b, unsigned int size)
 {
 	// 运行过程中不要使c重分空间
-	CuPtr_Const da(a, size);
-	CuPtr_Const db(b, size);
-	CuPtr dc(&(c[0]), size);
+	CuPtr<const int> da(a, size);
+	CuPtr<const int> db(b, size);
+	CuPtr<int> dc(&(c[0]), size);
 
 	addKernel << <1, size >> >(
-		(int*)dc.GetDevicePtr(),
-		(int*)da.GetDevicePtr(),
-		(int*)db.GetDevicePtr()
+		dc.GetDevicePtr(),
+		da.GetDevicePtr(), 
+		db.GetDevicePtr()
 		);
 
 	dc.CuGetResult();

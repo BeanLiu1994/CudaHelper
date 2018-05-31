@@ -8,16 +8,16 @@ CFLAG_CUDA_INC 		= 	-I/usr/local/cuda/include/
 
 all:test
 
-test:main.o kernel.cu.o CudaManager.cu.o
+test:main.o kernel.cu.obj CudaManager.cu.obj
 	$(CC) $^ -o $@ -dlink -L/usr/local/cuda/lib64 -lcudart
 
 main.o:main.cpp
 	$(CC) $(CFLAG_BASIC) $(CFLAG_CUDA_INC) -c $^ -o $@ 
 
-CudaManager.cu.o:CudaManager.cu
+CudaManager.cu.obj:CudaManager.cu
 	$(NVCC) $(CFLAG_BASIC) -c $^ -o $@ 
 
-kernel.cu.o:kernel.cu
+kernel.cu.obj:kernel.cu
 	$(NVCC) $(CFLAG_BASIC) -c $^ -o $@ 
 
 .PHONY:clean

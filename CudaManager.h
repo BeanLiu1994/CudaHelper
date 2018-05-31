@@ -1,13 +1,33 @@
 #pragma once
 // Made by BeanLiu
 // njueebeanliu@hotmail.com
-#define UseCuda
 
-// CuPtr(nullptr, size)
 
-#ifdef UseCuda
-#include <algorithm>
 #include <cuda_runtime.h>
+// these headers are from offical sdk
+#if __CUDACC_VER_MAJOR__ == 8
+#include "common/helper_cuda_80.h"
+#elif __CUDACC_VER_MAJOR__ == 9
+#include "common/helper_cuda.h"
+#else
+#define DEVICE_RESET
+#endif
+
+#include <algorithm>
+#include <stdexcept>
+#include <cstdlib>
+#include <cstdio>
+
+inline void gpuAssert(cudaError_t code, const char *file, int line, bool abort = true)
+{
+	if (code != cudaSuccess)
+	{
+		fprintf(stderr, "GPUassert: %s %s %d\n", cudaGetErrorString(code), file, line);
+		DEVICE_RESET
+			if (abort) throw std::runtime_error(cudaGetErrorString(code));
+	}
+}
+#define gpuErrchk(ans) { gpuAssert((ans), __FILE__, __LINE__); }
 
 enum CuState {
 	NotInitialized,
@@ -15,86 +35,87 @@ enum CuState {
 	Deleted
 };
 
-/* 传入结束后最好不要使用Ptr内容 */
-/*  OutPtr一定要手动分配好内存  */
-/*  或者用其他库已经分好的空间，大小要一致  */
-struct CuPtr
+class CuPtr_Base
 {
-private:
+protected:
+	//仅用于处理GPU端的内存管理
+	//能够产生指针并析构时释放空间
+	//用户不要再次malloc或free
 	CuState state;
 	void* d_Ptr;
-	CuPtr(const CuPtr& rhs) = delete;
-	const CuPtr& operator=(const CuPtr& rhs) = delete;
-	//CuPtr(CuPtr&& move) {};
+	//禁止复制
+	CuPtr_Base(const CuPtr_Base& rhs) = delete;
+	const CuPtr_Base& operator=(const CuPtr_Base& rhs) = delete;
+	size_t _Size;
+	size_t _TypeSize;
 public:
-	void* Ptr;
-	size_t Size;
-	size_t TypeSize;
-	template <class DataType>
-	CuPtr(DataType* _Ptr, size_t _Len);
-	CuPtr(void* _Ptr, size_t _Size) :Ptr(_Ptr), Size(_Size), TypeSize(1), state(NotInitialized)
-	{
-		if (Ptr == nullptr)
-			CuMallocAndSetVal(0);
-		else
-			CuMallocAndCopy();
-	}
-	void CuMallocAndCopy();
-	void CuMallocAndSetVal(int val);
-	void CuGetResult(void* OutPtr = nullptr);
+
+	const size_t& Size;
+	const size_t& TypeSize;
+
+	//唯一初始化方式
+	CuPtr_Base(size_t __Size) :_Size(__Size), Size(_Size), _TypeSize(1), TypeSize(_TypeSize), state(NotInitialized)
+	{ CuMalloc(); }
+	~CuPtr_Base() { CuFree(); }
+	void CuMalloc();
+	void CuGetResult(void* OutPtr);
 	void CuFree();
 	void* GetDevicePtr() { return d_Ptr; }
 	static void CuSyncDevice();
-	~CuPtr() { CuFree(); }
 };
 
-template <class DataType>
-CuPtr::CuPtr(DataType* _Ptr, size_t _Len) : Ptr(_Ptr), Size(_Len * sizeof(DataType)), state(NotInitialized), TypeSize(sizeof(DataType))
+template <typename _DataTy>
+class CuPtr :public CuPtr_Base
 {
-	if (Ptr == nullptr)
-		CuMallocAndSetVal(0);
-	else
-		CuMallocAndCopy();
+	_DataTy* Ptr;
+	void CuInitVal(int val);
+	void CuCopyFromPtr();
+public:
+	CuPtr(_DataTy* _Ptr, size_t _Len) : CuPtr_Base(_Len * sizeof(_DataTy)), Ptr(_Ptr)
+	{
+		_TypeSize = sizeof(_DataTy);
+		if (Ptr == nullptr)
+			CuInitVal(0);
+		else
+			CuCopyFromPtr();
+	}
+	template<
+		typename _DataTyNonConst = typename std::remove_const<_DataTy>::type,
+		typename Check = std::enable_if<std::is_same<_DataTy, _DataTyNonConst>::value>
+	>
+	void CuGetResult(_DataTyNonConst* OutPtr = nullptr);
+	_DataTy* GetDevicePtr() { return static_cast<_DataTy*>(d_Ptr); }
+};
+
+
+template<typename _DataTy>
+void CuPtr<_DataTy>::CuCopyFromPtr()
+{
+	if (state != CuState::MallocFinisied)
+		CuMalloc();
+	gpuErrchk(cudaMemcpy(d_Ptr, Ptr, Size, cudaMemcpyHostToDevice));
 }
 
-/* 传入结束后后续不能修改Ptr指向的内容 */
-/* 一般传递不变的量，因为在gpu修改后不能直接复制到源地址 */
-struct CuPtr_Const
-{
-private:
-	CuState state;
-	void* d_Ptr;
-	CuPtr_Const(const CuPtr_Const& rhs) = delete;
-	const CuPtr_Const& operator=(const CuPtr_Const& rhs) = delete;
-	//CuPtr_Const(CuPtr_Const&& move) {};
-public:
-	const void* Ptr;
-	size_t Size;
-	size_t TypeSize;
-	template <class DataType>
-	CuPtr_Const(const DataType* _Ptr, size_t _Len);
-	CuPtr_Const(const void* _Ptr, size_t _Size) :Ptr(_Ptr), Size(_Size), TypeSize(1), state(NotInitialized)
-	{
-		if (Ptr == nullptr)
-			CuMallocAndSetVal(0);
-		else
-			CuMallocAndCopy();
-	}
-	void CuMallocAndCopy();
-	void CuMallocAndSetVal(int val);
-	void CuFree();
-	void* GetDevicePtr() { return d_Ptr; }
-	static void CuSyncDevice();
-	~CuPtr_Const() { CuFree(); }
-};
 
-template <class DataType>
-CuPtr_Const::CuPtr_Const(const DataType* _Ptr, size_t _Len) : Ptr(_Ptr), Size(_Len * sizeof(DataType)), state(NotInitialized), TypeSize(sizeof(DataType))
+template<typename _DataTy>
+void CuPtr<_DataTy>::CuInitVal(int val)
 {
-	if (Ptr == nullptr)
-		CuMallocAndSetVal(0);
-	else
-		CuMallocAndCopy();
+	if (state != CuState::MallocFinisied)
+		CuMalloc();
+	gpuErrchk(cudaMemset(d_Ptr, val, Size));
+}
+
+
+template<typename _DataTy>
+template<typename _DataTyNonConst, typename Check>
+void CuPtr<_DataTy>::CuGetResult(_DataTyNonConst* OutPtr)
+{
+	if (state != CuState::MallocFinisied)
+		throw std::runtime_error("copy with nullptr");
+	if (OutPtr == nullptr)
+		OutPtr = Ptr;
+	//gpuErrchk(cudaDeviceSynchronize());
+	gpuErrchk(cudaMemcpy(OutPtr, d_Ptr, Size, cudaMemcpyDeviceToHost));
 }
 
 
@@ -102,8 +123,6 @@ class cudaInitializer
 {
 private:
 	cudaInitializer();
-	static cudaInitializer item;
-	~cudaInitializer();
 public:
 	static int Init();
 	static int dev;
@@ -115,4 +134,3 @@ inline void computeGridSize(unsigned int n, unsigned int blockSize, unsigned int
 	numThreads = std::min(blockSize, n);
 	numBlocks = (n % numThreads != 0) ? (n / numThreads + 1) : (n / numThreads);
 }
-#endif
