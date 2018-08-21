@@ -47,12 +47,12 @@ int main()
 	if (!cudaInitializer::CudaOK())
 		return 100;
 
-	// æµ‹è¯•ç”¨å˜é‡
+	// ²âÊÔÓÃ±äÁ¿
 	int c1[arraySize] = { 0 };
 	int c2[arraySize] = { 0 };
 	vector<int> c3(arraySize, 0);
-	
-	//åˆ›å»ºä¸‰ä¸ªæµ‹è¯•
+
+	//´´½¨Èı¸ö²âÊÔ
 	MakeTest_i(1);
 	MakeTest_i(2);
 	MakeTest_i(3);

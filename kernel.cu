@@ -4,55 +4,43 @@
 
 __global__ void addKernel(int *c, const int *a, const int *b)
 {
-    int i = threadIdx.x;
-    c[i] = a[i] + b[i];
+	int i = threadIdx.x;
+	c[i] = a[i] + b[i];
 }
 
-// æµ‹è¯•1 å¸¸è§ç”¨æ³•
+// ²âÊÔ1 ³£¼ûÓÃ·¨
 void test1(int *c, const int *a, const int *b, unsigned int size)
 {
-	CuPtr<const int> da(a, size);
-	CuPtr<const int> db(b, size);
-	CuPtr<int> dc(c, size);
+	CuPtr<const int> da(size, a);
+	CuPtr<const int> db(size, b);
+	CuPtr<int> dc(size, c);
 
-    	addKernel<<<1, size>>>(
-		dc.GetDevicePtr(),
-		da.GetDevicePtr(), 
-		db.GetDevicePtr()
-		);
-    
-	dc.CuGetResult();
+	addKernel << <1, size >> > (dc(), da(), db());
+
+	dc.GetResult();
 }
 
-// æµ‹è¯•2 ç›´æ¥åˆ†é…gpuç©ºé—´,ä¹‹åå¤åˆ¶åˆ°cé‡Œ
+// ²âÊÔ2 Ö±½Ó·ÖÅägpu¿Õ¼ä,Ö®ºó¸´ÖÆµ½cÀï
 void test2(int *c, const int *a, const int *b, unsigned int size)
 {
-	CuPtr<const int> da(a, size);
-	CuPtr<const int> db(b, size);
-	CuPtr<int> dc(nullptr, size*sizeof(int));
+	CuPtr<const int> da(size, a);
+	CuPtr<const int> db(size, b);
+	CuPtr<int> dc(size, nullptr);
 
-	addKernel << <1, size >> >(
-		dc.GetDevicePtr(),
-		da.GetDevicePtr(), 
-		db.GetDevicePtr()
-		);
+	addKernel << <1, size >> > (dc(), da(), db());
 
-	dc.CuGetResult(c);
+	dc.GetResult(c);
 }
 
-// æµ‹è¯•3 ä½¿ç”¨å…¶ä»–åº“åˆ†å‡ºçš„ç©ºé—´
+// ²âÊÔ3 Ê¹ÓÃÆäËû¿â·Ö³öµÄ¿Õ¼ä
 void test3(std::vector<int>& c, const int *a, const int *b, unsigned int size)
 {
-	// è¿è¡Œè¿‡ç¨‹ä¸­ä¸è¦ä½¿cé‡åˆ†ç©ºé—´
-	CuPtr<const int> da(a, size);
-	CuPtr<const int> db(b, size);
-	CuPtr<int> dc(&(c[0]), size);
+	// ÔËĞĞ¹ı³ÌÖĞ²»ÒªÊ¹cÖØ·Ö¿Õ¼ä
+	CuPtr<const int> da(size, a);
+	CuPtr<const int> db(size, b);
+	CuPtr<int> dc(size, &(c[0]));
 
-	addKernel << <1, size >> >(
-		dc.GetDevicePtr(),
-		da.GetDevicePtr(), 
-		db.GetDevicePtr()
-		);
+	addKernel << <1, size >> > (dc(), da(), db());
 
-	dc.CuGetResult();
+	dc.GetResult();
 }

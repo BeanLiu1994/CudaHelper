@@ -15,11 +15,11 @@ CuPtr:
 
 * Constructor
   
-* CuGetResult
+* GetResult
 
-* GetDevicePtr
+* operator()
 
-* CuSyncDevice  (static)
+* SyncDevice  (static)
 
 these four functions should be enough for simple cuda program.
 
@@ -34,10 +34,10 @@ f(T *a, ...)
   CuPtr<T> da(a, size);//  malloc: size*sizeof(T) , and copy to device.
   ...
   kernel<<<?,?>>>(
-                da.GetDevicePtr(),
+                da(),
                 ...
                 );
-  da.CuGetResult();//  sync and copy to host.
+  da.GetResult();//  sync and copy to host.
 }
 ```
 
@@ -45,12 +45,12 @@ test 2
 ```
 f(T *a, ...)
 {
-  CuPtr<T> da(nullptr, size*sizeof(T));//  malloc: size*sizeof(T) , copy nothing.
+  CuPtr<T> da(nullptr, size);//  malloc: size*sizeof(T) , copy nothing.
   ...
   kernel<<<?,?>>>(
-                da.GetDevicePtr(),
+                da(),
                 ...
                 );
-  da.CuGetResult(a);//  sync and copy to host.
+  da.GetResult(a);//  sync and copy to host.
 }
 ```

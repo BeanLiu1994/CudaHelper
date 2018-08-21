@@ -8,7 +8,7 @@ CFLAG_CUDA_INC 		= 	-I/usr/local/cuda/include/
 
 all:test
 
-test:main.o kernel.cu.obj CudaManager.cu.obj
+test:main.o kernel.cu.obj CudaManager.cu.obj Culocator.cu.obj
 	$(CC) $^ -o $@ -dlink -L/usr/local/cuda/lib64 -lcudart
 
 main.o:main.cpp
@@ -18,6 +18,9 @@ CudaManager.cu.obj:CudaManager.cu
 	$(NVCC) $(CFLAG_BASIC) -c $^ -o $@ 
 
 kernel.cu.obj:kernel.cu
+	$(NVCC) $(CFLAG_BASIC) -c $^ -o $@ 
+
+Culocator.cu.obj:Culocator.cu
 	$(NVCC) $(CFLAG_BASIC) -c $^ -o $@ 
 
 .PHONY:clean
