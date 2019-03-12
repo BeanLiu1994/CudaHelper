@@ -1,12 +1,11 @@
 #pragma once
 
 #include <algorithm>
-#include "CuPtr.cuh"
 
 // these headers are from offical sdk
 #if __CUDACC_VER_MAJOR__ == 8
 #include "common/helper_cuda_80.h"
-#elif __CUDACC_VER_MAJOR__ == 9
+#elif __CUDACC_VER_MAJOR__ >= 9
 #include "common/helper_cuda.h"
 #else
 #define DEVICE_RESET

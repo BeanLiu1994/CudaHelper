@@ -1,4 +1,5 @@
 #include "CudaManager.h"
+#include <iostream>
 
 int cudaInitializer::dev = -1;
 cudaInitializer::cudaInitializer()

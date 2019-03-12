@@ -1,5 +1,5 @@
 #include "kernel.h"
-#include "CudaManager.h"
+#include "CuPtr.cuh"
 #include <vector>
 
 __global__ void addKernel(int *c, const int *a, const int *b)

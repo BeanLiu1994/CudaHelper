@@ -1,6 +1,6 @@
 
 #include "kernel.h"
-#include "CudaManager.h"
+#include "CuPtr.cuh"
 #include <stdexcept>
 #include <vector>
 using namespace std;
@@ -10,16 +10,20 @@ const int a[arraySize] = { 1, 2, 3, 4, 5 };
 const int b[arraySize] = { 10, 20, 30, 40, 50 };
 const int c_expect[arraySize] = { 11, 22, 33, 44, 55 };
 
-#define MakeTest_i(x)\
+#define MakeTest_i(x) {\
 try\
 {\
+	cout << "running test #" << x << " now." << endl;\
 	test##x(c##x, a, b, arraySize);\
 	if (!cmp(c##x, c_expect, arraySize))\
 		return (x);\
 }\
 catch (runtime_error& e)\
 {\
+	cerr << e.what() << endl;\
 	return (x);\
+}\
+cout << "success!" << endl;\
 }\
 
 bool cmp(const vector<int>& v1, const int* v2, const int size)
