@@ -7,6 +7,7 @@
 #include <iostream>
 #include <string>
 #include <typeinfo>
+#include <assert.h>
 
 // 后续希望支持move操作,const的更方便的用法,模板参数的特殊处理等。
 template<typename _tyIn> // 元素类型
@@ -37,6 +38,20 @@ protected:
 			return;
 		}
 	}
+
+	template<typename is_enable_check = std::true_type>
+	inline bool _check()
+	{
+		if (is_enable_check::value) // if constexpr ?
+		{
+			return mem_size == (elem_size * sizeof(_ty));
+		}
+		else
+		{
+			return true;
+		}
+	}
+
 public:
 	explicit CuPtr(size_t _size, _ty_noref* _ptr)
 	{
@@ -95,10 +110,12 @@ public:
 
 	_ty* operator()()
 	{
+		assert(_check());
 		return static_cast<_ty*>(device_ptr);
 	}
 	const _ty* operator()() const
 	{
+		assert(_check());
 		return static_cast<_ty*>(device_ptr);
 	}
 
