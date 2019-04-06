@@ -40,7 +40,7 @@ protected:
 	}
 
 	template<typename is_enable_check = std::true_type>
-	inline bool _check()
+	inline bool _check() const
 	{
 		if (is_enable_check::value) // if constexpr ?
 		{
@@ -156,6 +156,6 @@ public:
 	}
 
 	constexpr size_t Get_type_size() { return type_size; }
-	size_t Get_elem_size() { return elem_size; }
-	size_t Get_mem_size() { return mem_size; }
+	size_t Get_elem_size() const { return elem_size; }
+	size_t Get_mem_size() const { return mem_size; }
 };
