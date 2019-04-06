@@ -17,7 +17,7 @@ list(APPEND CUDA_NVCC_FLAGS_DEBUG "-G")
 
 # grab files, and add our target "test", Executable.
 include_directories (include)
-file(GLOB_RECURSE PATHS_HEADERS ${CMAKE_SOURCE_DIR}/include/*.h)
+file(GLOB_RECURSE PATHS_HEADERS ${CMAKE_SOURCE_DIR}/include/*.h ${CMAKE_SOURCE_DIR}/include/*.cuh)
 file(GLOB_RECURSE PATHS_SOURCES src/*.cpp src/*.cu)
 
 CUDA_ADD_EXECUTABLE(test ${PATHS_HEADERS} ${PATHS_SOURCES})
